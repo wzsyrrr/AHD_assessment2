@@ -29,6 +29,8 @@ research_dt_clean <- subset(research_dt_clean, FFQ0102 != "88" & FFQ0102 != "99"
 research_dt_clean <- na.omit(research_dt_clean)
 table(research_dt_clean$FFQ0102)
 
+#remove outlier
+research_dt_clean <- subset(research_dt_clean, BMXBMI < 100)
 
 #output clean data
 write.csv(research_dt_clean,"clean/clean_dt.csv", row.names = FALSE)
