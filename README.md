@@ -37,8 +37,40 @@ Then, proceed with your analysis, focusing on the 'BMXBMI' and 'FFQ0102' columns
 hist(dt$FFQ0102)
 
 ```
-Then create different models and compare with them.
-After that, check AIC and BIC for each model, and find the best fit. Then add 'INDFMPIR' into our model.
+Then create different models and compare with them. For example:
+```R
+model_linear <- lm(BMXBMI~FFQ0102, data = dt)
+summary(model_linear)
+```
+
+Get the prediction value and calculate the mean and IOR. For example:
+```R
+dt$linear_pred <- predict(model_linear)
+mean_CI <- dt %>%
+  group_by(FFQ0102) %>%
+  summarise(
+    Mean = mean(BMXBMI, na.rm = TRUE),
+    Lower = Mean - qt(0.975, df=n()-1) * sd(BMXBMI) / sqrt(n()),
+    Upper = Mean + qt(0.975, df=n()-1) * sd(BMXBMI) / sqrt(n())
+  )
+```
+
+Get a ggplot for our model. For example:
+```R
+ggplot() +
+  geom_point(data = mean_CI, aes(x = FFQ0102, y = Mean)) +
+  geom_errorbar(data = mean_CI, aes(x = FFQ0102, ymin = Lower, ymax = Upper), width = 0.2) +
+  geom_line(data = dt, aes(x = FFQ0102, y = linear_pred), color = 'red') +
+  labs(title = "BMI by Potato Chips Consumption with Predicted Linear Relationship",
+       x = "Potato Chips Consumption Category",
+       y = "BMI") 
+```
+After that, check AIC and BIC for each model, and find the best fit. For example:
+```R
+cbind(AIC(model_linear), BIC(model_linear))
+```
+
+Finally add 'INDFMPIR' into our model.
 
 ## 3D BMI Relationship Visualization App
 This Shiny app visualizes the relationship between Body Mass Index (BMI), poverty income ratio (PIR), and the frequency of eating potato chips using a 3D plot. The app allows users to interactively explore data and input specific values to predict BMI based on the selected frequency of chip consumption and poverty income ratio.
