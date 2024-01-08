@@ -1,0 +1,40 @@
+Building DAG of jobs...
+Retrieving input from storage.
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job              count
+-------------  -------
+clean                1
+visualization        1
+total                2
+
+Select jobs to execute...
+Execute 1 jobs...
+
+[Sun Jan  7 19:48:25 2024]
+localrule clean:
+    input: raw/BMI.csv, raw/DEMO_D.csv, raw/FFQRAW_D.csv
+    output: clean/clean.csv
+    jobid: 1
+    reason: Missing output files: clean/clean.csv
+    resources: tmpdir=/var/folders/4t/fqmblqhj66nf7cfd428sh8nw0000gn/T
+
+[Sun Jan  7 19:48:26 2024]
+Error in rule clean:
+    jobid: 1
+    input: raw/BMI.csv, raw/DEMO_D.csv, raw/FFQRAW_D.csv
+    output: clean/clean.csv
+    shell:
+        
+        mkdir -p clean
+        rscript code/data_clean.R
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2024-01-07T194825.832573.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

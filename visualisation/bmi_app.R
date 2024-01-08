@@ -6,7 +6,9 @@
 #
 #    http://shiny.rstudio.com/
 #
-
+install.packages("shiny")
+install.packages("plotly")
+install.packages("mfp")
 # Load package 
 library(shiny)
 library(dplyr)
