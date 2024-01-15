@@ -15,12 +15,13 @@
     |-- visualisation <br />
         |-- bmi_app.R <br />
         |-- model_compare.pdf <br />
-        |-- bmi-boxplot.pdf <br />
+        |-- bmi_boxplot.pdf <br />
 
 ## Introduction
-This project focus on on analyzing and comparing two key columns - 'BMXBMI' and 'FFQ0102' - in the dataset provided in 'clean_dt.csv'. 
+This project focus on analyzing and comparing two key columns - 'BMXBMI' and 'FFQ0102' - in the dataset provided in 'clean_dt.csv'. 
 The aim is to uncover insights through comparison, identify trends, correlations, or anomalies that may exist between these two variables.
-In addition, we add 'INDFMPIR' as a confounder. Finally, create a shiny app to use 3D plot to predict BMI based on frequency of eating potato chips and poverty income ratio.
+In addition, we add 'INDFMPIR' as a confounder. 
+Finally, create a shiny app to use 3D plot to predict BMI based on frequency of eating potato chips and poverty income ratio.
 
 ## Installation
 For this project, you will nedd R and the following R packages: `ggpplot2`, `dplyr`, `car`, `mfp`, `lspline`, `rms`
@@ -87,3 +88,7 @@ To run this app, you will need R and the following R packages: `shiny`, `dplyr`,
 install.packages(c("shiny", "dplyr", "plotly", "mfp"))
 ```
 
+## Conclusion
+BMI will decrease as the frequency of eating potato chips increases, and the overall BMI of rich people will be higher than that of poor people. 
+But this conclusion leaves much to be desired, because the human diet structure is very complex, and in this model I didn’t adjust some baseline variables like age or heights. 
+However, the frequency of eating potato chips can indeed be used as one of the factors that affect BMI in research.

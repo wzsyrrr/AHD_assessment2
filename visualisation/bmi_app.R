@@ -6,33 +6,34 @@
 #
 #    http://shiny.rstudio.com/
 #
-install.packages("shiny")
-install.packages("plotly")
-install.packages("mfp")
-# Load package 
+
+#Please make sure you have installed the following packages already
+#Load package 
 library(shiny)
 library(dplyr)
 library(plotly)
 library(mfp)
 
 
-# Read data
+#Read data
 survey_data <- read.csv("clean/clean_dt.csv")
 
 
-# Define the user interface, user can enter their poverty income ratio
-# Limit INDFMPIR to a maximum of 5, all enter greater than 5 will be treated as 5
+#Define the user interface, user can enter their poverty income ratio
+#Limit INDFMPIR to a maximum of 5, all enter greater than 5 will be treated as 5
+#as is defined for INDFPIR
 survey_data$INDFMPIR <- pmin(survey_data$INDFMPIR, 5) 
 
 
-# Define the user interface, user can choose their potato chips consumption groups
+#Define the user interface
+#Let user be able to choose their potato chips consumption groups and their poverty ratio
 ui <- fluidPage(
-  # Add a title
+  #Add title
   titlePanel("3D Relationship of BMXBMI, Poverty Income Ratio, and Frequency of Eating Potato Chips"),
   sidebarLayout(
-    # Define a sidebar panel for user to enter their condition
+    #Define a sidebar panel for user to choose
     sidebarPanel(
-      # Add a table to describe the frequency of eating potato chips
+      #Add a table to describe the frequency of eating potato chips in each groups
       h4("Frequency of Eating Potato Chips:"),
       tags$table(class = "table table-striped",
                  tags$thead(
@@ -52,13 +53,13 @@ ui <- fluidPage(
                    tags$tr(tags$td("11"), tags$td("2 or more times per day"))
                  )
       ),
-      # Numeric input for potato chips consumption frequency groups and poverty income ratio 
+      #Define input for potato chips consumption frequency groups and poverty income ratio 
       numericInput("inputFrequency", "Please select your frequency of eating potato chips:", min = 1, max = 11, value = 1),
       numericInput("inputPIR", "Please enter your Poverty Income Ratio:", min = 0, max = 5, value = 0),
-      # Add a button, when user click button app will predict
+      #Add a button, when user click button, app will predict the bmi based on their choice
       actionButton("predict", "Predict")
     ),
-    # Main panel to display the 3D plot and predicted BMI output
+    #Main panel to display outcomes: 3D plot and predicted BMI output
     mainPanel(
       plotlyOutput("Plot3D"),
       textOutput("predictedBMI")
@@ -66,56 +67,60 @@ ui <- fluidPage(
   )
 )
 
-# Define server logic
+#Define server logic
 server <- function(input, output) {
   
-    # Reactive data, so that data can load and process automatically
+    #Reactive data, so that data can load and process automatically
     survey_data <- reactive({
       data <- read.csv("clean/clean_dt.csv")
       data$INDFMPIR <- pmin(data$INDFMPIR, 5)  
       data
     })
     
-    # Reactive model fitting, so model will fit automatically
+    #Reactive model fitting, so model will fit automatically
+    #The model here is a fractional polynomial between BMI and potato chips cosumption groups
+    #Poverty income ratio is added in model as a cofounder
     fit <- reactive({
       mfp(BMXBMI ~ fp(FFQ0102, df=2) + INDFMPIR, data = survey_data(), family = gaussian)
     })
     
-    # Generate the 3D plot
+    #Generate 3D plot for our output
     output$Plot3D <- renderPlotly({
       plot_data <- survey_data() %>% 
         select(FFQ0102, INDFMPIR, BMXBMI)
       
-      # Create the 3D scatter plot
+      #Create a 3D scatter plot for our model
       p <- plot_ly(plot_data, x = ~FFQ0102, y = ~INDFMPIR, z = ~BMXBMI, type = 'scatter3d', mode = 'markers',
                    marker = list(color = 'blue', size = 1), name = 'Population Data') %>%
         layout(title = "3D Relationship of BMXBMI, PIR, and Frequency of Eating Chips",
                scene = list(xaxis = list(title = 'Frequency of Eating Chips'),
                             yaxis = list(title = 'Poverty Income Ratio (Capped at 5)'),
                             zaxis = list(title = 'BMXBMI')),
-               # Update the 3D plot with the predicted point
                legend = list(x = 0.9, y = 0.1, orientation = 'h'))
+      #return p
       p
     })
     
-    # Predict and label the point on the plot
+    #Predict the BMI based on user's input and label the predicted point on the plot
     observeEvent(input$predict, {
-      # Create new data for prediction based on user input
+      #Create new data for prediction based on user input
       new_data <- data.frame(FFQ0102 = input$inputFrequency, INDFMPIR = pmin(input$inputPIR, 5))
-      # Perform prediction using the fitted model
+      #Predict data with our model
       predicted_value <- predict(fit(), newdata = new_data, type = "response")
       
-      # Display the predicted BMI in the UI
+      #Display the predicted BMI in the UI
       output$predictedBMI <- renderText({
         paste("Predicted BMI for Potato Chips Consumption Group:", input$inputFrequency, "and Poverty Income Ratio:", input$inputPIR, "is:", predicted_value)
       })
       
-      # Update the plot with the predicted point
+      #Update the plot with the predicted point
       output$Plot3D <- renderPlotly({
         plot_data <- survey_data() %>% 
           select(FFQ0102, INDFMPIR, BMXBMI)
         
-        # Add the predicted point to the existing plot
+        #Add the predicted point to the existing plot
+        #The red point is predicted point based on user's input
+        #The blue points are real data from our collection
         p <- plot_ly(plot_data, x = ~FFQ0102, y = ~INDFMPIR, z = ~BMXBMI, type = 'scatter3d', mode = 'markers',
                      marker = list(color = 'blue', size = 1), name = 'Population Data') %>%
           add_trace(x = c(input$inputFrequency), y = c(input$inputPIR), z = c(predicted_value),
@@ -125,12 +130,12 @@ server <- function(input, output) {
                  scene = list(xaxis = list(title = 'Frequency of Eating Chips'),
                               yaxis = list(title = 'Poverty Income Ratio (Capped at 5)'),
                               zaxis = list(title = 'BMXBMI')),
-                 # Position the legend at the bottom right
+                 #Put the legend at the bottom right
                  legend = list(x = 0.9, y = 0.1, orientation = 'h'))
         #return p
         p
       })
     })
   }
-# Run app 
+#Run app 
 shinyApp(ui = ui, server = server)
